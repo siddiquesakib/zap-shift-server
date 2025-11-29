@@ -29,10 +29,25 @@ async function run() {
     await client.connect();
 
     const db = client.db("zap_shift_db");
-    const parcelsColl = db.collection("parcel");
+    const parcelsColl = db.collection("parcels");
+
+    app.get("/parcels", async (req, res) => {
+      const query = {};
+      const { email } = req.query;
+      if (email) {
+        query.senderEmail = email;
+      }
+      const cursor = parcelsColl.find(query);
+      const result = await cursor.toArray();
+
+      res.send(result);
+    });
 
     app.post("/parcels", async (req, res) => {
       const parcel = req.body;
+
+      parcel.createdAt = new Date();
+
       const result = await parcelsColl.insertOne(parcel);
       res.send(result);
     });
