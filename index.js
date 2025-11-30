@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 require("dotenv").config();
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 const port = process.env.PORT || 3000; // 3000 port ta use koro na takle cess.env.PORT
 
@@ -37,7 +37,10 @@ async function run() {
       if (email) {
         query.senderEmail = email;
       }
-      const cursor = parcelsColl.find(query);
+
+      const options = { sort: { createdAt: -1 } };
+
+      const cursor = parcelsColl.find(query, options);
       const result = await cursor.toArray();
 
       res.send(result);
@@ -49,6 +52,22 @@ async function run() {
       parcel.createdAt = new Date();
 
       const result = await parcelsColl.insertOne(parcel);
+      res.send(result);
+    });
+
+    app.get("/parcels/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+
+      const result = await parcelsColl.findOne(query);
+      res.send(result);
+    });
+
+    app.delete("/parcels/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+
+      const result = await parcelsColl.deleteOne(query);
       res.send(result);
     });
 
